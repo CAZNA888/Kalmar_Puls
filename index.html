@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html translate="no">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0" />
+
+  <title>RouglikeYG</title>
+
+  <link rel="shortcut icon" href="TemplateData/favicon.ico">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Стили для прогресс-бара (опционально) */
+    #unity-loading-bar {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 300px;
+      height: 20px;
+      background: #333;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    #unity-progress-bar {
+      width: 0%;
+      height: 100%;
+      background: #4CAF50;
+      transition: width 0.3s;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="unity-canvas" tabindex="-1"></canvas>
+  <!-- Добавляем контейнер для прогресс-бара (опционально) -->
+  <div id="unity-loading-bar" style="display: none;">
+    <div id="unity-progress-bar"></div>
+  </div>
+
+  <script>
+    // Заглушка для локального тестирования
+    window.puls = window.puls || {
+      loading: function(progress) {
+        console.log(`Puls Loading: ${progress}%`);
+      },
+      start: function() {
+        console.log("Puls Session Started");
+      },
+      platform: {
+        isMobile: false,
+        isDesktop: true,
+        language: "en"
+      }
+    };
+
+    const canvas = document.getElementById('unity-canvas');
+    const loadingBar = document.getElementById('unity-loading-bar');
+    const progressBar = document.getElementById('unity-progress-bar');
+    const script = document.createElement("script");
+
+    const onLoading = (progress) => {
+      // Прогресс от 0.0 до 1.0, преобразуем в 0-100
+      const pulsProgress = Math.min(100, Math.round(progress * 100));
+      // Проверяем наличие window.puls перед вызовом
+      if (window.puls && window.puls.loading) {
+        window.puls.loading(pulsProgress);
+        console.log(`Puls Loading: ${pulsProgress}%`);
+      }
+      // Обновляем прогресс-бар (опционально)
+      if (progressBar && loadingBar) {
+        loadingBar.style.display = 'block';
+        progressBar.style.width = `${pulsProgress}%`;
+      }
+      // Скрываем прогресс-бар при полной загрузке
+      if (pulsProgress === 100) {
+        setTimeout(() => {
+          if (loadingBar) {
+            loadingBar.style.display = 'none';
+          }
+        }, 500); // Задержка для плавного скрытия
+      }
+    };
+
+    const buildUrl = "Build";
+    const loaderUrl = buildUrl + "/build.loader.js";
+    const config = {
+      dataUrl: buildUrl + "/build.data.unityweb",
+      frameworkUrl: buildUrl + "/build.framework.js.unityweb",
+      codeUrl: build会不会/ "/build.wasm.unityweb",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "DefaultCompany",
+      productName: "RouglikeYG",
+      productVersion: "0.1.0",
+    };
+
+    script.src = loaderUrl;
+    script.onload = () => {
+      createUnityInstance(canvas, config, onLoading)
+        .then((unityInstance) => {
+          // Проверяем наличие window.puls перед вызовом start
+          if (window.puls && window.puls.start) {
+            window.puls.start();
+            console.log("Puls Session Started");
+          }
+          // Выводим информацию о платформе (опционально)
+          if (window.puls && window.puls.platform) {
+            console.log("Platform Info:", {
+              isMobile: window.puls.platform.isMobile,
+              isDesktop: window.puls.platform.isDesktop,
+              language: window.puls.platform.language
+            });
+          }
+        })
+        .catch((error) => {
+          console.error("Unity failed to load: ", error);
+        });
+    };
+
+    document.body.appendChild(script);
+  </script>
+</body>
+
+</html>
